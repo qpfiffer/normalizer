@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Control.Applicative
 import Data.Aeson
 import Data.Attoparsec.Text as AP
 import Data.Text as T
@@ -19,13 +20,20 @@ type Nicks = [Nick]
 
 parseLog :: Parser Nick
 parseLog = do
-    garbage <- AP.take 19
-    return $ Nick { nick = garbage, alias_of = "" }
+    _ <- AP.take 20
+    _ <- AP.string "--"
+    wtf <- AP.take 1
+    alias <- AP.takeTill (\x -> x == ' ')
+    known_as <- AP.string " is now known as "
+    end <- AP.takeTill AP.isEndOfLine
+    return $ Nick { nick = alias, alias_of = end }
+
+parseNicks :: Parser Nicks
+parseNicks = many $ parseLog <* endOfLine
 
 main :: IO ()
 main = do
     args <- getArgs
-    file_data <- TIO.readFile (args !! 0)
-    print $ parseOnly parseLog file_data
+    TIO.readFile (args !! 0) >>= print . parseOnly parseNicks
 
     exitWith ExitSuccess
