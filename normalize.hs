@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.Aeson
+import Data.Attoparsec.Text as AP
 import Data.Text as T
 import Data.Text.IO as TIO
 import System.Environment
@@ -14,13 +15,17 @@ data Nick = Nick
 instance ToJSON Nick where
     toJSON (Nick name alias) = object [ "nick" .= name, "alias_of" .= alias ]
 
-parseLog :: Text -> [Nick]
-parseLog _ = []
+type Nicks = [Nick]
+
+parseLog :: Parser Nick
+parseLog = do
+    garbage <- AP.take 19
+    return $ Nick { nick = garbage, alias_of = "" }
 
 main :: IO ()
 main = do
     args <- getArgs
     file_data <- TIO.readFile (args !! 0)
-    return $ parseLog file_data
+    print $ parseOnly parseLog file_data
 
     exitWith ExitSuccess
