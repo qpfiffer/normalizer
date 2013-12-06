@@ -22,11 +22,11 @@ parseLog :: Parser Nick
 parseLog = do
     _ <- AP.take 20
     _ <- AP.string "--"
-    wtf <- AP.take 1
+    _ <- AP.take 1
     alias <- AP.takeTill (\x -> x == ' ')
-    known_as <- AP.string " is now known as "
-    end <- AP.takeTill AP.isEndOfLine
-    return $ Nick { nick = alias, alias_of = end }
+    _ <- AP.string " is now known as "
+    nick <- AP.takeTill AP.isEndOfLine
+    return $ Nick { nick = alias, alias_of = nick }
 
 parseNicks :: Parser Nicks
 parseNicks = many $ parseLog <* endOfLine
